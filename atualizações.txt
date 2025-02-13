@@ -1,0 +1,57 @@
+1 - Observação sobre Persistência de Dados:
+
+Atualmente, o código salva os dados no arquivo CSV somente quando o usuário clica no botão "Salvar". Isso significa que, se houver uma interrupção (como queda de energia ou fechamento inesperado da aplicação) antes de o botão ser pressionado, as transações que estiverem apenas no session_state e no DataFrame serão perdidas.
+
+Proposta de Melhoria:
+
+Salvar os dados automaticamente sempre que houver uma nova transação ou em intervalos regulares, para garantir que as informações sejam persistidas independentemente de ações do usuário. Isso evitaria a perda de dados em caso de falhas ou interrupções no sistema.
+
+
+2 - Observação sobre Edição de Transações:
+
+Atualmente, ao editar uma transação, o usuário vê apenas o ID da transação, o que pode ser confuso, principalmente para usuários leigos. Para melhorar a usabilidade, será necessário exibir uma descrição mais clara para cada transação, incluindo ID, Categoria e Tipo de transação.
+
+Proposta de Melhoria:
+
+Exibir no campo de seleção de transações algo como:
+0 - Carne - Despesa
+1 - Salário - Receita
+Dessa forma, o usuário poderá identificar facilmente qual transação deseja editar, associando o ID com uma descrição simples e objetiva.
+
+3 - Observação sobre Exclusão de Transações:
+
+Atualmente, na função de excluir transações, o usuário vê apenas o ID da transação, o que pode ser confuso, assim como na função de editar. Para melhorar a usabilidade e garantir que o usuário está excluindo a transação correta, deve-se exibir no campo de seleção de exclusão o ID, Categoria e Tipo da transação.
+
+Proposta de Melhoria:
+
+Exibir no campo de seleção de transações para excluir algo como:
+0 - Carne - Despesa
+1 - Salário - Receita
+Essa abordagem vai ajudar o usuário a identificar rapidamente a transação a ser excluída, além de minimizar o risco de excluir a transação errada.
+
+4 - Observação sobre Exclusão de Transações - Confirmação Adicional:
+
+Atualmente, a exclusão de transações acontece automaticamente ao marcar o checkbox, o que pode ser perigoso caso o usuário clique por engano. Para evitar exclusões acidentais, devemos implementar uma confirmação adicional antes de excluir a transação.
+
+Proposta de Melhoria:
+
+Adicionar um botão de confirmação de exclusão:
+
+Ao selecionar a transação e marcar o checkbox, o botão "Excluir Transação" deve aparecer, mas a exclusão só acontece ao clicar nesse botão.
+Exibir uma mensagem de confirmação:
+
+Antes de excluir, mostrar uma mensagem com o texto: "Tem certeza de que deseja excluir a transação de R$ [valor] da categoria [categoria]? Essa ação não pode ser desfeita."
+O usuário teria opções Confirmar ou Cancelar.
+Alterar o texto do checkbox:
+
+O texto do checkbox pode ser alterado para "Marque para confirmar a exclusão" para deixar mais claro o que o usuário está fazendo.
+
+5 - Observação sobre a Função "Redefinir Dados":
+
+Atualmente, o botão "Redefinir Dados" está na tela principal, mas seria mais adequado movê-lo para a barra lateral para evitar que o usuário clique acidentalmente e perca os dados.
+
+Proposta de Modificação:
+
+Mover o botão "Redefinir Dados" para a barra lateral:
+A função de redefinir os dados deve ficar disponível na barra lateral, junto com as outras opções de navegação, como Adicionar Novo Registro, Exibir Transações, etc.
+Assim, a tela principal fica mais limpa e o usuário tem que procurar ativamente pela opção de redefinir, o que reduz a chance de exclusões acidentais.
