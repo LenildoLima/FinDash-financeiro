@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import datetime
 from pathlib import Path
-import plotly.express as px
 
 # Título principal do dashboard
 st.title("FinDash - Dashboard de Controle Financeiro")
@@ -32,9 +31,6 @@ def carregar_transacoes(arquivo_csv):
 
 # Função para adicionar transação
 def adicionar_transacao(tipo, categoria, valor, data):
-    if valor <= 0:
-        st.error("O valor deve ser positivo.")
-        return
     if data > datetime.date.today():
         st.error("A data não pode ser futura.")
         return
@@ -61,33 +57,35 @@ with st.sidebar:
         "Editar Dados",
         "Excluir Dados",
         "Salvar",
-        "Exportar para CSV",
-        "Gerenciar Categorias"
+        "Exportar para CSV"
     ])
 
 # Adicionar Transação
 if opcao == "Adicionar Transação":
     with st.form("add_form"):
         tipo = st.selectbox("Tipo de Transação:", st.session_state.config["tipos"])
-        categoria = st.selectbox("Categoria:", st.session_state.config["categorias"])
-        valor = st.number_input("Valor (R$)", min_value=0.01, step=0.01)
+        if tipo == "Receita" or tipo == "Despesa":
+            categoria = st.text_input("Categoria:", placeholder="Digite uma categoria personalizada")
+        valor = st.number_input("Valor (R$)", min_value=0.0, step=0.01)
         data = st.date_input("Data da Transação", value=datetime.date.today())
 
         submit_button = st.form_submit_button("Adicionar Transação")
 
         if submit_button:
-            adicionar_transacao(tipo, categoria, valor, data)
+            if not categoria:
+                st.error("Por favor, preencha a categoria.")
+            else:
+                adicionar_transacao(tipo, categoria, valor, data)
 
 # Exibir Transações
 if opcao == "Exibir Transações":
     if not st.session_state.transacoes.empty:
-        st.write("### Filtrar por Mês, Ano, Tipo e Categoria")
+        st.write("### Filtrar por Mês, Ano e Tipo")
         ano_atual = datetime.date.today().year
         mes_atual = datetime.date.today().month
         ano = st.selectbox("Ano", range(2020, datetime.date.today().year + 1), index=ano_atual - 2020)
         mes = st.selectbox("Mês", range(1, 13), index=mes_atual - 1)
         tipo = st.selectbox("Tipo de Transação", ["Ambos", "Receita", "Despesa"], index=0)
-        categoria = st.selectbox("Categoria", ["Todas"] + st.session_state.config["categorias"], index=0)
 
         # Filtrando as transações pelo mês e ano selecionados
         transacoes_filtradas = st.session_state.transacoes[
@@ -99,9 +97,6 @@ if opcao == "Exibir Transações":
 
         if tipo != "Ambos":
             transacoes_filtradas = transacoes_filtradas[transacoes_filtradas["tipo"] == tipo]
-
-        if categoria != "Todas":
-            transacoes_filtradas = transacoes_filtradas[transacoes_filtradas["Categoria"] == categoria]
 
         st.dataframe(transacoes_filtradas)
 
@@ -119,14 +114,6 @@ if opcao == "Exibir Transações":
             st.success(f"O saldo está positivo! (+R$ {saldo:.2f})")
         else:
             st.error(f"O saldo está negativo! (-R$ {saldo:.2f})")
-
-        # Adicionando gráficos
-        fig = px.bar(transacoes_filtradas, x='Data', y='Valor', color='tipo', title='Transações por Data')
-        st.plotly_chart(fig)
-
-        fig_pie = px.pie(transacoes_filtradas, values='Valor', names='Categoria', title='Distribuição por Categoria')
-        st.plotly_chart(fig_pie)
-
     else:
         st.info("Nenhuma transação registrada ainda.")
 
@@ -141,8 +128,7 @@ if opcao == "Editar Dados":
         with st.form("edit_form"):
             tipo_edit = st.selectbox("Tipo de Transação:", st.session_state.config["tipos"],
                                      index=st.session_state.config["tipos"].index(transacao["tipo"]))
-            categoria_edit = st.selectbox("Categoria", st.session_state.config["categorias"],
-                                          index=st.session_state.config["categorias"].index(transacao["Categoria"]))
+            categoria_edit = st.text_input("Categoria", value=transacao["Categoria"])
             valor_edit = st.number_input("Valor (R$)", min_value=0.0, step=0.01, value=transacao["Valor"])
             data_edit = st.date_input("Data da Transação", value=pd.to_datetime(transacao["Data"]).date())
 
@@ -159,6 +145,7 @@ if opcao == "Editar Dados":
                 st.session_state.transacoes.to_csv(arquivo_csv, index=False)
     else:
         st.info("Nenhuma transação registrada para editar.")
+
 
 # Excluir Dados
 if opcao == "Excluir Dados":
@@ -199,29 +186,6 @@ if opcao == "Exportar para CSV":
         )
     else:
         st.info("Não há transações para exportar.")
-
-# Gerenciar Categorias
-if opcao == "Gerenciar Categorias":
-    st.write("### Adicionar Nova Categoria")
-    nova_categoria = st.text_input("Nome da Nova Categoria")
-    if st.button("Adicionar Categoria"):
-        if nova_categoria and nova_categoria not in st.session_state.config["categorias"]:
-            st.session_state.config["categorias"].append(nova_categoria)
-            st.success(f"Categoria '{nova_categoria}' adicionada.")
-        else:
-            st.error("Categoria já existe ou nome inválido.")
-
-    st.write("### Categorias Existentes")
-    st.write(st.session_state.config["categorias"])
-
-    st.write("### Excluir Categoria")
-    categoria_excluir = st.selectbox("Categoria a Excluir", st.session_state.config["categorias"])
-    if st.button("Excluir Categoria"):
-        if categoria_excluir in st.session_state.config["categorias"]:
-            st.session_state.config["categorias"].remove(categoria_excluir)
-            st.success(f"Categoria '{categoria_excluir}' excluída.")
-        else:
-            st.error("Categoria não encontrada.")
 
 
 
